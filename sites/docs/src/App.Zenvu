@@ -1,0 +1,72 @@
+<script lang="ts">
+  import Header from './components/Header.Zenvu';
+
+  let title = 'Welcome to Zenvu.js Docs';
+  let count = 0;
+
+  function increment() {
+    count += 1;
+  }
+</script>
+
+<template>
+  <div class="app">
+    <Header :title="title" />
+    <main>
+      <h1>{{ title }}</h1>
+      <p class="tagline">Write like Vue. Compile like Rust. Run like nothing's there.</p>
+      <div class="counter-card">
+        <button @click="increment">Count: {{ count }}</button>
+      </div>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+  .app {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: 3rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  .tagline {
+    color: #94a3b8;
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+  }
+
+  .counter-card {
+    padding: 2rem;
+  }
+
+  button {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+</style>
