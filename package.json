@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build:core": "cargo build --workspace --release",
-    "build:packages": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build --workspace=@zenvu/reactivity && npm run build --workspace=@zenvu/runtime && npm run build --workspace=@zenvu/runtime-core && npm run build --workspace=@zenvu/animation && npm run build --workspace=@zenvu/motion && npm run build --workspaces --if-present",
     "test": "cargo test --workspace && npm run test --workspaces"
   },
   "engines": {

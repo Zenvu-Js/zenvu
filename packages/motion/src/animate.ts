@@ -1,5 +1,7 @@
+import type { SpringConfig } from './transition';
+
 /**
- * ðŸŒ€ Zenvu Responsive Animation & Touch Gesture Engine
+ * 🌀 Zenvu Responsive Animation & Touch Gesture Engine
  * Handles 60fps animations and native swipe/pan gestures.
  */
 
@@ -50,3 +52,73 @@ export class MotionEngine {
         return el.animate(keyframes, options);
     }
 }
+
+export interface AnimateOptions {
+    duration?: number;
+    easing?: (t: number) => number;
+    onUpdate: (value: number) => void;
+}
+
+/**
+ * Run a smooth, frame-rate independent custom transition.
+ */
+export function animate(
+    from: number,
+    to: number,
+    options: AnimateOptions
+): Promise<void> {
+    const { duration = 300, easing = (t: number) => t, onUpdate } = options;
+    return new Promise((resolve) => {
+        const startTime = performance.now();
+        function tick(now: number) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easing(progress);
+            const value = from + (to - from) * eased;
+            onUpdate(value);
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            } else {
+                onUpdate(to);
+                resolve();
+            }
+        }
+        requestAnimationFrame(tick);
+    });
+}
+
+export interface SpringOptions extends SpringConfig {
+    onUpdate: (value: number) => void;
+}
+
+/**
+ * Run a spring-physics-based fluid animation.
+ */
+export function spring(
+    from: number,
+    to: number,
+    options: SpringOptions
+): Promise<void> {
+    const { stiffness = 170, damping = 26, mass = 1, onUpdate } = options;
+    return new Promise((resolve) => {
+        let velocity = 0;
+        let current = from;
+        const target = to;
+        function tick() {
+            const springForce = stiffness * (target - current);
+            const damperForce = damping * velocity;
+            const acceleration = (springForce - damperForce) / mass;
+            velocity += acceleration * (1 / 60);
+            current += velocity * (1 / 60);
+            onUpdate(current);
+            if (Math.abs(velocity) < 0.01 && Math.abs(target - current) < 0.01) {
+                onUpdate(target);
+                resolve();
+            } else {
+                requestAnimationFrame(tick);
+            }
+        }
+        requestAnimationFrame(tick);
+    });
+}
+

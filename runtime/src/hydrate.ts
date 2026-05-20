@@ -1,4 +1,3 @@
-import { getComponentMetadata } from './component';
 import { enforceAntiTampering } from './security';
 
 /**
