@@ -1,0 +1,18 @@
+{
+  "name": "create-zenvu-js",
+  "version": "0.1.0",
+  "description": "Scaffold a brand new Zenvu.js project in seconds.",
+  "type": "module",
+  "bin": {
+    "create-zenvu-js": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --minify"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT"
+}
