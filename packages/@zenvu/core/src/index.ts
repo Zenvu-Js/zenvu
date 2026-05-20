@@ -10,94 +10,202 @@
 // 1. Core Signals & Reactivity (Proxy-based)
 // ==========================================
 type Subscriber = () => void;
-let activeEffect: Subscriber | null = null;
-const targetMap = new WeakMap<object, Map<string, Set<Subscriber>>>();
 
-export function track(target: object, key: string) {
-    if (activeEffect) {
-        let depsMap = targetMap.get(target);
-        if (!depsMap) {
-            targetMap.set(target, (depsMap = new Map()));
+interface SignalNode<T = any> {
+    value: T;
+    subscribers: Set<EffectNode>;
+}
+
+interface EffectNode {
+    fn: Subscriber;
+    dependencies: Set<SignalNode>;
+    run(): void;
+}
+
+let activeEffectNode: EffectNode | null = null;
+
+// Batched updates queue
+const effectQueue = new Set<EffectNode>();
+let isBatching = false;
+let isQueuePending = false;
+
+function flushQueue() {
+    const list = Array.from(effectQueue);
+    effectQueue.clear();
+    isQueuePending = false;
+    list.forEach(node => {
+        try {
+            node.run();
+        } catch (e) {
+            console.error('🔴 [Zenvu Reactivity] Effect execution failed:', e);
         }
-        let dep = depsMap.get(key);
-        if (!dep) {
-            depsMap.set(key, (dep = new Set()));
+    });
+}
+
+/**
+ * Batches multiple state updates together, running all dependent effects
+ * exactly once at the end of the batch.
+ */
+export function batch(fn: () => void) {
+    const prevBatching = isBatching;
+    isBatching = true;
+    try {
+        fn();
+    } finally {
+        isBatching = prevBatching;
+        if (!isBatching && effectQueue.size > 0 && !isQueuePending) {
+            isQueuePending = true;
+            queueMicrotask(flushQueue);
         }
-        dep.add(activeEffect);
     }
 }
 
-export function trigger(target: object, key: string) {
-    const depsMap = targetMap.get(target);
-    if (!depsMap) return;
-    const dep = depsMap.get(key);
-    if (dep) {
-        dep.forEach((effect) => {
-            try {
-                effect();
-            } catch (e) {
-                console.error('🔴 [Zenvu Reactivity] Signal propagation failed:', e);
+/**
+ * Creates a raw Signal representing a single piece of fine-grained reactive state.
+ * Returns a getter and setter tuple [get, set].
+ */
+export function createSignal<T>(initialValue: T): [() => T, (val: T | ((prev: T) => T)) => void] {
+    const node: SignalNode<T> = {
+        value: initialValue,
+        subscribers: new Set()
+    };
+
+    const get = () => {
+        if (activeEffectNode) {
+            node.subscribers.add(activeEffectNode);
+            activeEffectNode.dependencies.add(node);
+        }
+        return node.value;
+    };
+
+    const set = (newValue: T | ((prev: T) => T)) => {
+        const nextValue = typeof newValue === 'function' 
+            ? (newValue as Function)(node.value) 
+            : newValue;
+            
+        if (nextValue !== node.value) {
+            node.value = nextValue;
+            
+            node.subscribers.forEach(sub => {
+                effectQueue.add(sub);
+            });
+
+            if (!isBatching && effectQueue.size > 0 && !isQueuePending) {
+                isQueuePending = true;
+                queueMicrotask(flushQueue);
             }
-        });
-    }
+        }
+    };
+
+    return [get, set];
 }
 
+/**
+ * Registers a side effect that automatically tracks accessed signals
+ * and runs whenever any of those signals change.
+ */
+export function effect(fn: Subscriber) {
+    const node: EffectNode = {
+        fn,
+        dependencies: new Set(),
+        run() {
+            // Dynamic dependency tracking: Clean up old signal links
+            this.dependencies.forEach(sig => sig.subscribers.delete(this));
+            this.dependencies.clear();
+
+            const prevEffect = activeEffectNode;
+            activeEffectNode = this;
+            try {
+                this.fn();
+            } finally {
+                activeEffectNode = prevEffect;
+            }
+        }
+    };
+    node.run();
+}
+
+/**
+ * Computed/Derived state. Evaluated lazily, automatically memoized,
+ * and only recalculates when its dependencies change.
+ */
+export function computed<T>(getter: () => T): { readonly value: T } {
+    const [getSignal, setSignal] = createSignal<T>(undefined as any);
+
+    effect(() => {
+        const newValue = getter();
+        setSignal(newValue);
+    });
+
+    return {
+        get value() {
+            return getSignal();
+        }
+    };
+}
+
+// Global WeakMap for proxy reactive state tracking
+const targetMap = new WeakMap<object, Map<string, { get: () => any, set: (v: any) => void }>>();
+
+/**
+ * Creates a reactive Proxy object for intuitive, property-based state management.
+ * Transparently wraps each property in a fine-grained Signal.
+ */
 export function reactive<T extends object>(target: T): T {
     if (typeof target !== 'object' || target === null) return target;
+
+    let signalMap = targetMap.get(target);
+    if (!signalMap) {
+        signalMap = new Map();
+        targetMap.set(target, signalMap);
+    }
+
+    const getSignalForProp = (key: string, initialValue: any) => {
+        let sig = signalMap!.get(key);
+        if (!sig) {
+            const [get, set] = createSignal(initialValue);
+            sig = { get, set };
+            signalMap!.set(key, sig);
+        }
+        return sig;
+    };
+
     return new Proxy(target, {
         get(obj, key: string) {
-            track(obj, key);
-            return Reflect.get(obj, key);
+            const val = Reflect.get(obj, key);
+            if (typeof val === 'function') {
+                return val.bind(obj);
+            }
+            if (typeof val === 'object' && val !== null) {
+                return reactive(val); // Nested proxy wrapping
+            }
+            return getSignalForProp(key, val).get();
         },
         set(obj, key: string, value: any) {
             const result = Reflect.set(obj, key, value);
-            trigger(obj, key);
+            getSignalForProp(key, value).set(value);
             return result;
         }
     });
 }
 
-export function effect(fn: Subscriber) {
-    const effectWrapper = () => {
-        activeEffect = effectWrapper;
-        try {
-            fn();
-        } finally {
-            activeEffect = null;
-        }
-    };
-    effectWrapper();
-}
-
-// ==========================================
-// 2. Computed Properties (Lazy & Cached)
-// ==========================================
-export function computed<T>(getter: () => T) {
-    let dirty = true;
-    let cachedValue: T;
-    
-    const computedObj = {
+/**
+ * Creates a ref object wrapping a value, with a reactive .value property.
+ */
+export function ref<T>(initialValue: T): { value: T } {
+    const [get, set] = createSignal(initialValue);
+    return {
         get value() {
-            if (dirty) {
-                cachedValue = getter();
-                dirty = false;
-            }
-            track(computedObj, 'value');
-            return cachedValue;
+            return get();
+        },
+        set value(newVal) {
+            set(newVal);
         }
     };
-
-    effect(() => {
-        getter(); // Track nested active signals
-        dirty = true;
-        trigger(computedObj, 'value');
-    });
-
-    return computedObj;
 }
 
 // ==========================================
-// 3. Two-Way Data Binding (z-model)
+// 2. Two-Way Data Binding (z-model)
 // ==========================================
 export function zModel(
     el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
@@ -121,7 +229,7 @@ export function zModel(
 }
 
 // ==========================================
-// 4. Template Directives (z-if, z-for)
+// 3. Template Directives (z-if, z-for)
 // ==========================================
 export function zIf(
     conditionFn: () => boolean,
@@ -161,7 +269,7 @@ export function zFor<T>(
 }
 
 // ==========================================
-// 5. Lifecycle Hooks (onMounted, onUnmounted)
+// 4. Lifecycle Hooks (onMounted, onUnmounted)
 // ==========================================
 interface ComponentInstance {
     mountedHooks: (() => void)[];
@@ -202,7 +310,7 @@ function observeDOMRemoval(el: HTMLElement, unmountHooks: (() => void)[]) {
 }
 
 // ==========================================
-// 6. Built-in State Management Store
+// 5. Built-in State Management Store
 // ==========================================
 export interface StoreOptions<S, A> {
     id: string;
@@ -293,7 +401,7 @@ export function defineStore<S extends Record<string, any>, A extends Record<stri
 }
 
 // ==========================================
-// 7. Built-in Page Router
+// 6. Built-in Page Router
 // ==========================================
 export interface RouteConfig {
     path: string;
@@ -367,7 +475,7 @@ export function RouterView(): HTMLElement | Comment {
 }
 
 // ==========================================
-// 8. Auto-Animate & Transition Wrapper
+// 7. Auto-Animate & Transition Wrapper
 // ==========================================
 export interface TransitionConfig {
     duration?: number;
@@ -439,24 +547,21 @@ export function transition(
 }
 
 // ==========================================
-// 9. Isomorphic / Server-Side Rendering (SSR) Ready
+// 8. Isomorphic / Server-Side Rendering (SSR) Ready
 // ==========================================
 export function renderToString(component: () => HTMLElement): string {
-    // Basic Server Render of DOM component to raw HTML
-    // On Server, DOM API can be mocked or elements generated to string structures
     let html = '';
     try {
         const el = component();
         html = el.outerHTML || el.textContent || '';
     } catch (e) {
-        // Fallback mock if running in bare Node environment
         html = '<div id="app">Server Rendered Content</div>';
     }
     return html;
 }
 
 // ==========================================
-// 10. Unified Component & App Mount System
+// 9. Unified Component & App Mount System
 // ==========================================
 export interface ComponentOptions {
     props?: Record<string, any>;

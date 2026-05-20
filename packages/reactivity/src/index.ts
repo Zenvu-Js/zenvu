@@ -2,110 +2,200 @@
 //!
 //! Powers the Zero-VDOM engine. Automatically tracks dependencies via Proxy
 //! and triggers surgical DOM updates (Effects) without any diffing.
+//! Features automatic dependency cleanup, memoized computed properties,
+//! and queued batched updates.
 
 type Subscriber = () => void;
 
-let activeEffect: Subscriber | null = null;
-const targetMap = new WeakMap<any, Map<string, Set<Subscriber>>>();
+interface SignalNode<T = any> {
+    value: T;
+    subscribers: Set<EffectNode>;
+}
+
+interface EffectNode {
+    fn: Subscriber;
+    dependencies: Set<SignalNode>;
+    run(): void;
+}
+
+let activeEffectNode: EffectNode | null = null;
+
+// Batched updates queue
+const effectQueue = new Set<EffectNode>();
+let isBatching = false;
+let isQueuePending = false;
+
+function flushQueue() {
+    const list = Array.from(effectQueue);
+    effectQueue.clear();
+    isQueuePending = false;
+    list.forEach(node => {
+        try {
+            node.run();
+        } catch (e) {
+            console.error('🔴 [Zenvu Reactivity] Effect execution failed:', e);
+        }
+    });
+}
 
 /**
- * Tracks a property access and records the active effect as a dependency.
+ * Batches multiple state updates together, running all dependent effects
+ * exactly once at the end of the batch.
  */
-export function track(target: any, key: string) {
-    if (activeEffect) {
-        let depsMap = targetMap.get(target);
-        if (!depsMap) {
-            targetMap.set(target, (depsMap = new Map()));
+export function batch(fn: () => void) {
+    const prevBatching = isBatching;
+    isBatching = true;
+    try {
+        fn();
+    } finally {
+        isBatching = prevBatching;
+        if (!isBatching && effectQueue.size > 0 && !isQueuePending) {
+            isQueuePending = true;
+            queueMicrotask(flushQueue);
         }
-        let dep = depsMap.get(key);
-        if (!dep) {
-            depsMap.set(key, (dep = new Set()));
-        }
-        dep.add(activeEffect);
     }
 }
 
 /**
- * Triggers all effects that depend on the mutated property.
+ * Creates a raw Signal representing a single piece of fine-grained reactive state.
+ * Returns a getter and setter tuple [get, set].
  */
-export function trigger(target: any, key: string) {
-    const depsMap = targetMap.get(target);
-    if (!depsMap) return;
-    const dep = depsMap.get(key);
-    if (dep) {
-        dep.forEach((effect) => {
-            try {
-                effect();
-            } catch (e) {
-                console.error('[Zenvu Reactivity] Effect execution failed:', e);
+export function createSignal<T>(initialValue: T): [() => T, (val: T | ((prev: T) => T)) => void] {
+    const node: SignalNode<T> = {
+        value: initialValue,
+        subscribers: new Set()
+    };
+
+    const get = () => {
+        if (activeEffectNode) {
+            node.subscribers.add(activeEffectNode);
+            activeEffectNode.dependencies.add(node);
+        }
+        return node.value;
+    };
+
+    const set = (newValue: T | ((prev: T) => T)) => {
+        const nextValue = typeof newValue === 'function' 
+            ? (newValue as Function)(node.value) 
+            : newValue;
+            
+        if (nextValue !== node.value) {
+            node.value = nextValue;
+            
+            node.subscribers.forEach(sub => {
+                effectQueue.add(sub);
+            });
+
+            if (!isBatching && effectQueue.size > 0 && !isQueuePending) {
+                isQueuePending = true;
+                queueMicrotask(flushQueue);
             }
-        });
-    }
+        }
+    };
+
+    return [get, set];
 }
 
 /**
- * Creates a reactive Proxy object.
+ * Registers a side effect that automatically tracks accessed signals
+ * and runs whenever any of those signals change.
+ */
+export function effect(fn: Subscriber) {
+    const node: EffectNode = {
+        fn,
+        dependencies: new Set(),
+        run() {
+            // Dynamic dependency tracking: Clean up old signal links
+            this.dependencies.forEach(sig => sig.subscribers.delete(this));
+            this.dependencies.clear();
+
+            const prevEffect = activeEffectNode;
+            activeEffectNode = this;
+            try {
+                this.fn();
+            } finally {
+                activeEffectNode = prevEffect;
+            }
+        }
+    };
+    node.run();
+}
+
+/**
+ * Computed/Derived state. Evaluated lazily, automatically memoized,
+ * and only recalculates when its dependencies change.
+ */
+export function computed<T>(getter: () => T): { readonly value: T } {
+    const [getSignal, setSignal] = createSignal<T>(undefined as any);
+
+    effect(() => {
+        const newValue = getter();
+        setSignal(newValue);
+    });
+
+    return {
+        get value() {
+            return getSignal();
+        }
+    };
+}
+
+// Global WeakMap for proxy reactive state tracking
+const targetMap = new WeakMap<object, Map<string, { get: () => any, set: (v: any) => void }>>();
+
+/**
+ * Creates a reactive Proxy object for intuitive, property-based state management.
+ * Transparently wraps each property in a fine-grained Signal.
  */
 export function reactive<T extends object>(target: T): T {
+    if (typeof target !== 'object' || target === null) return target;
+
+    let signalMap = targetMap.get(target);
+    if (!signalMap) {
+        signalMap = new Map();
+        targetMap.set(target, signalMap);
+    }
+
+    const getSignalForProp = (key: string, initialValue: any) => {
+        let sig = signalMap!.get(key);
+        if (!sig) {
+            const [get, set] = createSignal(initialValue);
+            sig = { get, set };
+            signalMap!.set(key, sig);
+        }
+        return sig;
+    };
+
     return new Proxy(target, {
-        get(obj, key) {
-            track(obj, key as string);
-            return Reflect.get(obj, key);
+        get(obj, key: string) {
+            const val = Reflect.get(obj, key);
+            if (typeof val === 'function') {
+                return val.bind(obj);
+            }
+            if (typeof val === 'object' && val !== null) {
+                return reactive(val); // Nested proxy wrapping
+            }
+            return getSignalForProp(key, val).get();
         },
-        set(obj, key, value) {
+        set(obj, key: string, value: any) {
             const result = Reflect.set(obj, key, value);
-            trigger(obj, key as string);
+            getSignalForProp(key, value).set(value);
             return result;
         }
     });
 }
 
 /**
- * Registers an effect to run automatically when its reactive dependencies change.
- * This is what powers the Zero-VDOM DOM patching!
+ * Creates a ref object wrapping a value, with a reactive .value property.
  */
-export function effect(fn: Subscriber) {
-    const effectWrapper = () => {
-        activeEffect = effectWrapper;
-        fn(); // This execution will trigger `track()` on any accessed reactive properties
-        activeEffect = null;
-    };
-    effectWrapper(); // Run immediately once to gather dependencies
-}
-
-/**
- * Computed/Derived state. Evaluated lazily and cached.
- */
-export function computed<T>(getter: () => T) {
-    let dirty = true;
-    let value: T;
-    
-    // We wrap the getter in an effect to track its dependencies.
-    // When they change, we mark the computed value as dirty.
-    effect(() => {
-        dirty = true;
-    });
-
+export function ref<T>(initialValue: T): { value: T } {
+    const [get, set] = createSignal(initialValue);
     return {
         get value() {
-            if (dirty) {
-                value = getter();
-                dirty = false;
-            }
-            return value;
+            return get();
+        },
+        set value(newVal) {
+            set(newVal);
         }
     };
 }
-
-export interface Ref<T> {
-    value: T;
-}
-
-/**
- * Creates a reactive reference for a single value.
- * Access/mutate via the `.value` property.
- */
-export function ref<T>(initialValue: T): Ref<T> {
-    return reactive({ value: initialValue });
-}
-
