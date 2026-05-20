@@ -1,4 +1,4 @@
-//! Zenvu.js Dev Server â€” HTTP server with WebSocket HMR.
+//! Zenvu.js Dev Server — HTTP server with WebSocket HMR.
 
 pub mod hmr;
 pub mod ssr;
@@ -15,15 +15,22 @@ pub mod streaming;
 pub mod server_component;
 
 use anyhow::Result;
-use axum::{Router, routing::get, response::Html};
+use axum::{Router, routing::get, response::Html, response::Json};
 use tower_http::services::ServeDir;
 use std::net::SocketAddr;
+use serde_json::{json, Value};
 
-/// Start the development server with HMR support.
+/// Start the development server with HMR and dynamic API endpoints support.
 pub async fn start_dev_server(addr: &str) -> Result<()> {
+    let api_routes = router::ApiRouter::new()
+        .get("/health", health_handler)
+        .get("/users", get_users_handler)
+        .post("/users", create_user_handler);
+
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/__zenvu_hmr", get(hmr::ws_handler))
+        .nest("/api", api_routes.into_router())
         .fallback_service(ServeDir::new("src"));
 
     let addr: SocketAddr = addr.parse()?;
@@ -55,4 +62,34 @@ async fn index_handler() -> Html<String> {
             </body></html>"#.to_string()
         });
     Html(html)
+}
+
+// ==========================================
+// Zenvu Server API handlers
+// ==========================================
+
+async fn health_handler() -> Json<Value> {
+    Json(json!({
+        "success": true,
+        "status": "healthy",
+        "framework": "Zenvu.js Core Server Engine"
+    }))
+}
+
+async fn get_users_handler() -> Json<Value> {
+    Json(json!({
+        "success": true,
+        "users": [
+            { "id": 1, "name": "Muhammad Lutfi Muzakii", "role": "Creator" },
+            { "id": 2, "name": "Zenvu.js Core Developer", "role": "Maintainer" }
+        ]
+    }))
+}
+
+async fn create_user_handler(Json(payload): Json<Value>) -> Json<Value> {
+    Json(json!({
+        "success": true,
+        "message": "User created successfully",
+        "data": payload
+    }))
 }
