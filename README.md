@@ -1,6 +1,7 @@
 <div align="center">
   <h1>🟣 Zenvu.js</h1>
   <p><strong>The Web Operating System for the Modern Era.</strong></p>
+  <p>Created & Maintained with 💜 by <strong><a href="https://github.com/MuhammadLutfiMuzakiiVY">Muhammad Lutfi Muzakii</a></strong></p>
 
   <p>
     Zenvu.js is a next-generation full-stack meta-framework built for TypeScript and JavaScript applications, designed to outperform traditional frontend frameworks and modern meta-frameworks in speed, memory efficiency, responsive rendering, and integrated security.
@@ -147,5 +148,5 @@ Enjoy the freedom of native dual-syntax support (Vue & React styles).
 Zenvu.js is open-source software licensed under the [MIT License](LICENSE).
 
 <div align="center">
-  <sub>Built with 🦀 Rust and 💜 TypeScript by the Zenvu.js Core Team.</sub>
+  <sub>Built with 🦀 Rust and 💜 TypeScript by <strong><a href="https://github.com/MuhammadLutfiMuzakiiVY">Muhammad Lutfi Muzakii</a></strong> and the Zenvu.js Core Team.</sub>
 </div>
