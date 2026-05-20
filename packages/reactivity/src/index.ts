@@ -96,3 +96,16 @@ export function computed<T>(getter: () => T) {
         }
     };
 }
+
+export interface Ref<T> {
+    value: T;
+}
+
+/**
+ * Creates a reactive reference for a single value.
+ * Access/mutate via the `.value` property.
+ */
+export function ref<T>(initialValue: T): Ref<T> {
+    return reactive({ value: initialValue });
+}
+
