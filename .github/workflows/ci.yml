@@ -42,7 +42,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Install Zenvu CLI
-      run: cargo install --path crates/Zenvu-cli
+      run: cargo install --path crates/zenvu-cli
 
     - name: Zenvu Edge Deploy
       run: Zenvu deploy --provider cloudflare

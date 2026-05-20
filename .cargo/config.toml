@@ -1,2 +1,3 @@
 [build]
-target-dir = "C:/temp/zenvu-target"
+# Local target directory speedup can be configured in your user-level Cargo config (~/.cargo/config.toml)
+# target-dir = "C:/temp/zenvu-target"

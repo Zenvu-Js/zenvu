@@ -26,6 +26,6 @@ jobs:
           prerelease: false
           
       - name: Publish to Native Registry & NPM
-        run: cargo run --bin Zenvu-cli -- publish --ci
+        run: cargo run -p zenvu-cli -- publish --ci
         env:
           BLU_NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
