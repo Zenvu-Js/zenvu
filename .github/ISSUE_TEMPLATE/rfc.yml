@@ -1,0 +1,30 @@
+name: RFC Proposal
+description: Submit a Request for Comments (RFC) for a major feature or architectural change to Zenvu.js.
+title: "[RFC] "
+labels: ["rfc", "discussion"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for taking the time to submit an RFC! Major changes require discussion and community consensus."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A brief explanation of the proposed feature.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why are we doing this? What use cases does it support?
+    validations:
+      required: true
+  - type: textarea
+    id: detailed-design
+    attributes:
+      label: Detailed Design
+      description: How exactly will this be implemented in the Rust Compiler or TS Runtime?
+    validations:
+      required: true

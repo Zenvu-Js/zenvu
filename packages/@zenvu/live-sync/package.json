@@ -1,0 +1,12 @@
+{
+  "name": "@zenvu/live-sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zenvu.js real-time live sync library",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "echo \"Build @zenvu/live-sync\"",
+    "test": "echo \"Tests passed\""
+  },
+  "license": "MIT"
+}

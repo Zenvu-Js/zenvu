@@ -1,0 +1,10 @@
+[package]
+name = "zenvu-docgen"
+version.workspace = true
+edition.workspace = true
+description = "Documentation generator for Zenvu.js components"
+
+[dependencies]
+zenvu-compiler = { path = "../zenvu-compiler" }
+anyhow = { workspace = true }
+serde_json = { workspace = true }

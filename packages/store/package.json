@@ -1,0 +1,13 @@
+{
+  "name": "@zenvu/store",
+  "version": "0.1.0",
+  "description": "Built-in state management for Zenvu.js â€” reactive stores with devtools",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --minify" },
+  "dependencies": { "@zenvu/runtime": "^0.1.0" },
+  "devDependencies": { "tsup": "^8.0.0", "typescript": "^5.7.0" },
+  "license": "MIT"
+}

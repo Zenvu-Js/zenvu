@@ -1,0 +1,50 @@
+name: Zenvu.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "next" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+
+    - name: Run Cargo Check (Memory Safety)
+      run: cargo check --workspace
+
+    - name: Run Zenvu Test Suite
+      run: cargo test --workspace
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Build TypeScript Micro-Runtime
+      run: npm install && npm run build
+
+  deploy-edge:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Zenvu CLI
+      run: cargo install --path crates/Zenvu-cli
+
+    - name: Zenvu Edge Deploy
+      run: Zenvu deploy --provider cloudflare
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}

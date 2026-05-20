@@ -1,0 +1,15 @@
+{
+  "name": "@zenvu/runtime-core",
+  "version": "0.1.0",
+  "description": "Core rendering engine for Zenvu.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --minify" },
+  "dependencies": {
+    "@zenvu/reactivity": "^0.1.0"
+  },
+  "devDependencies": { "tsup": "^8.0.0", "typescript": "^5.7.0" },
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+[package]
+name = "zenvu-test"
+version.workspace = true
+edition.workspace = true
+description = "High-performance testing framework for Zenvu.js components"
+
+[dependencies]
+zenvu-compiler = { path = "../zenvu-compiler" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

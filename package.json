@@ -1,0 +1,19 @@
+{
+  "name": "zenvu-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Zenvu.js - The Web Operating System for the Modern Era",
+  "workspaces": [
+    "packages/@zenvu/*"
+  ],
+  "scripts": {
+    "build:core": "cargo build --workspace --release",
+    "build:packages": "npm run build --workspaces",
+    "test": "cargo test --workspace && npm run test --workspaces"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Zenvu.js Core Team",
+  "license": "MIT"
+}

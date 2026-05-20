@@ -1,0 +1,31 @@
+name: Release Management & Changelog
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate Changelog
+        uses: tj-actions/github-changelog-generator@v1
+        with:
+          output: 'CHANGELOG.md'
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          
+      - name: Publish to Native Registry & NPM
+        run: cargo run --bin Zenvu-cli -- publish --ci
+        env:
+          BLU_NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

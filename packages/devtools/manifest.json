@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Zenvu.js DevTools",
+  "version": "1.0.0",
+  "description": "Debug and inspect Zenvu.js reactive applications.",
+  "permissions": ["activeTab", "scripting"],
+  "devtools_page": "devtools.html",
+  "icons": {
+    "128": "icon.png"
+  }
+}

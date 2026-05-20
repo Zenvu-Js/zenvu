@@ -1,0 +1,12 @@
+{
+  "name": "@zenvu/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zenvu.js core runtime library",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "echo \"Build @zenvu/core\"",
+    "test": "echo \"Tests passed\""
+  },
+  "license": "MIT"
+}

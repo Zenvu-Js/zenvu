@@ -1,0 +1,13 @@
+[package]
+name = "zenvu-build"
+version.workspace = true
+edition.workspace = true
+description = "Internal bundler and build pipeline for Zenvu.js"
+
+[dependencies]
+zenvu-compiler = { path = "../zenvu-compiler" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

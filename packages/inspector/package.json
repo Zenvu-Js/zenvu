@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/inspector",
+  "version": "0.1.0",
+  "description": "Component tree debugger and inspector overlay for Zenvu.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --minify" },
+  "devDependencies": { "tsup": "^8.0.0", "typescript": "^5.7.0" }
+}

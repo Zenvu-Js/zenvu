@@ -1,0 +1,62 @@
+<script setup>
+  // 1. Zero-Boilerplate Server Data (The Edge Oracle)
+  // Automatically runs on the server during SSR, then seamlessly hydrates the client.
+  import { useStore, useEdgeFetch } from '@zenvu/core';
+  
+  // 2. Proxy-Based Reativity (Zero-VDOM)
+  // `state` is a deeply reactive proxy. Mutating it surgically updates the DOM in O(1) time.
+  const state = useStore({
+    marketPrice: 0,
+    cryptoName: 'Bitcoin',
+  });
+
+  // Native streaming SSR fetch - no Next.js `getServerSideProps` nonsense!
+  const { data, suspend } = useEdgeFetch('https://api.crypto.com/btc', { 
+    fallbackCache: true // If offline, serves cached PWA payload
+  });
+
+  state.marketPrice = data.price;
+
+  // 3. Hardware-Aware Lifecycle
+  // Only runs if the device has >20% battery and RAM isn't throttled.
+  function onMarketUpdate(newPrice) {
+    if (!document.body.classList.contains('zenvu-battery-saver')) {
+      state.marketPrice = newPrice;
+    }
+  }
+</script>
+
+<template>
+  <!-- 4. Fluid Adaptive Container (Zero Media Queries) -->
+  <main class="dashboard" data-responsive="auto">
+    
+    <!-- 5. Partial Hydration (Zero-JS Island) -->
+    <header static>
+      <h1>Zenvu.js Enterprise Dashboard</h1>
+      <p>This text is pure HTML. Zero JavaScript is shipped for this block.</p>
+    </header>
+
+    <section class="live-data">
+      <!-- 6. Surgical Binding -->
+      <!-- When `state.marketPrice` changes, ONLY this text node is updated. The VDOM doesn't exist here! -->
+      <h2>{{ state.cryptoName }}: $<span id="price">{{ state.marketPrice }}</span></h2>
+      
+      <!-- 7. Dual Syntax Capability (JSX inside Vue-like template!) -->
+      <ReactComponent chartData={data.history} />
+      
+      <button @click="suspend">Pause Realtime Sync</button>
+    </section>
+
+  </main>
+</template>
+
+<style scoped>
+  /* 8. Auto-Minified Scoped CSS */
+  .dashboard {
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .live-data h2 {
+    color: var(--zenvu-primary);
+  }
+</style>

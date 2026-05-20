@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/registry-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend for the Official Zenvu.js Plugin Marketplace & Registry",
+  "scripts": {
+    "dev": "Zenvu dev"
+  }
+}

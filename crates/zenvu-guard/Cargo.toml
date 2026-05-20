@@ -1,0 +1,13 @@
+[package]
+name = "zenvu-guard"
+version.workspace = true
+edition.workspace = true
+description = "Zenvu.js runtime protection â€” rate limiting, intrusion detection, audit logging, session management"
+
+[dependencies]
+zenvu-security = { path = "../zenvu-security" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

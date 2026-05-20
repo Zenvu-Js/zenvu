@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/playground",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive WebAssembly (WASM) Playground for Zenvu.js",
+  "scripts": {
+    "dev": "Zenvu dev"
+  }
+}

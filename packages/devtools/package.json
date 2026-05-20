@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/devtools",
+  "version": "0.1.0",
+  "description": "Browser DevTools extension for Zenvu.js",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Building DevTools extension...'"
+  }
+}

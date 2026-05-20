@@ -1,0 +1,11 @@
+[package]
+name = "zenvu-plugin"
+version.workspace = true
+edition.workspace = true
+description = "Zenvu.js plugin system â€” extensible hook-based architecture"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

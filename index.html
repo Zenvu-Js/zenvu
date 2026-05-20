@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenvu.js - The Secure Compile-Time Framework</title>
+    <!-- Automatic CSP injection would happen here by the Rust compiler -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com;">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        .card-desc {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            margin-top: 1rem;
+        }
+
+        .code-block {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            color: #e2e8f0;
+        }
+
+        .keyword { color: #c678dd; }
+        .function { color: #61afef; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Zenvu.js</h1>
+            <p class="subtitle">The secure, compile-time reactive framework built with Rust and TypeScript.</p>
+            <div class="security-badge">
+                ðŸ›¡ï¸ Rust Native Security Sandbox Enabled
+            </div>
+        </header>
+
+        <div class="architecture-grid">
+            <div class="card">
+                <div class="card-icon">âš¡</div>
+                <div class="card-title">Zero Virtual DOM</div>
+                <div class="card-desc">No diffing overhead. Zenvu compiles your templates into surgical DOM updates using <strong>Compiled Signals</strong> and <strong>Native Reactivity</strong>.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">ðŸš€</div>
+                <div class="card-title">Ultra-Fast Hydration</div>
+                <div class="card-desc">Server-rendered HTML becomes interactive instantly. Listeners are attached directly without executing heavy JS tree re-renders.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">âš™ï¸</div>
+                <div class="card-title">WASM Compiler Ready</div>
+                <div class="card-desc">The blazing fast Rust compiler can be shipped to the browser via <strong>WebAssembly (WASM)</strong> for instant online REPLs.</div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1; background: linear-gradient(to right, rgba(30,41,59,0.9), rgba(15,23,42,0.9));">
+                <div class="card-icon">ðŸ›¡ï¸</div>
+                <div class="card-title">Secure Plugin Isolation</div>
+                <div class="card-desc">
+                    Unlike standard frameworks, Zenvu.js uses a <strong>Rust native sandbox layer</strong> to isolate plugins, enforce strict CSP headers, auto-escape XSS vectors at compile-time, and strip prototype pollution automatically.
+                </div>
+            </div>
+        </div>
+
+        <div class="code-block">
+            <pre><code><span class="comment">&lt;!-- Example of Zenvu.js Secure HTML Templating --&gt;</span>
+<span class="keyword">&lt;script</span> <span class="string">lang</span>=<span class="string">"ts"</span><span class="keyword">&gt;</span>
+    <span class="keyword">let</span> userInput = <span class="string">"&lt;script&gt;alert('xss')&lt;/script&gt;"</span>;
+<span class="keyword">&lt;/script&gt;</span>
+
+<span class="keyword">&lt;template&gt;</span>
+    <span class="comment">&lt;!-- Auto-escaped at compile time. Safe from XSS. --&gt;</span>
+    <span class="keyword">&lt;div&gt;</span>{{ userInput }}<span class="keyword">&lt;/div&gt;</span>
+    
+    <span class="comment">&lt;!-- Explicit sanitization required for raw HTML --&gt;</span>
+    <span class="keyword">&lt;div</span> <span class="string">b-html</span>=<span class="string">"sanitizeHtml(userInput)"</span><span class="keyword">&gt;&lt;/div&gt;</span>
+<span class="keyword">&lt;/template&gt;</span></code></pre>
+        </div>
+    </div>
+
+</body>
+</html>

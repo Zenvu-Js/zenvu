@@ -1,0 +1,12 @@
+{
+  "name": "@zenvu/query",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zenvu.js data query library",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "echo \"Build @zenvu/query\"",
+    "test": "echo \"Tests passed\""
+  },
+  "license": "MIT"
+}

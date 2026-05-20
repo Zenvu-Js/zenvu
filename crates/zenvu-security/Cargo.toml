@@ -1,0 +1,19 @@
+[package]
+name = "zenvu-security"
+version.workspace = true
+edition.workspace = true
+description = "Zenvu.js core security primitives â€” crypto, sanitization, CSP, SRI, package signing"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+sha2 = "0.10"
+hmac = "0.12"
+rand = "0.9"
+base64 = "0.22"
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+subtle = "2.6"
+regex = "1.11"

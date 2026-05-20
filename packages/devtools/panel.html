@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenvu DevTools Panel</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent: #3b82f6;
+            --border: #333;
+            --card-bg: #252526;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            border-right: 1px solid var(--border);
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+            border-left: 4px solid #fff;
+        }
+
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-view {
+            display: none;
+        }
+
+        .panel-view.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: #fff;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        /* Graph Mockup */
+        .graph-box {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            font-family: monospace;
+            color: #9cdcfe;
+            min-height: 200px;
+        }
+
+        .tree-line { margin: 8px 0; padding-left: 20px; position: relative; }
+        .tree-line::before { content: 'â””â”€'; position: absolute; left: 0; color: #666; }
+        .tree-root { color: #569cd6; font-weight: bold; }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 10px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="tab active" data-target="components">ðŸ“¦ Component Inspector</div>
+        <div class="tab" data-target="state">ðŸ”„ State Inspector</div>
+        <div class="tab" data-target="profiler">â±ï¸ Render Profiler</div>
+        <div class="tab" data-target="heatmap">ðŸ”¥ Performance Heatmap</div>
+        <div class="tab" data-target="reactivity">ðŸ”— Dependency Graph</div>
+        <div class="tab" data-target="events">ðŸ•¹ï¸ Event Debugger</div>
+        <div class="tab" data-target="timeline">ðŸ“œ Timeline</div>
+        <div class="tab" data-target="memory">ðŸ§  Memory Profiler</div>
+    </div>
+
+    <div class="main-content">
+        <!-- Component Graph -->
+        <div id="components" class="panel-view active">
+            <h2>Component Graph (Zero VDOM)</h2>
+            <p>Visualizing the live component tree mapped directly to native DOM nodes.</p>
+            <div class="graph-box">
+                <div class="tree-root">&lt;App /&gt;</div>
+                <div class="tree-line">&lt;Header title="Zenvu.js" /&gt;</div>
+                <div class="tree-line">&lt;Sidebar items={5} /&gt;</div>
+                <div class="tree-line" style="margin-left: 20px;">&lt;NavItem id="1" /&gt;</div>
+                <div class="tree-line" style="margin-left: 20px;">&lt;NavItem id="2" /&gt;</div>
+                <div class="tree-line">&lt;ContentWrapper /&gt;</div>
+                <div class="tree-line" style="margin-left: 20px;">&lt;InteractiveChart /&gt;</div>
+            </div>
+        </div>
+
+        <!-- Render Profiler -->
+        <div id="profiler" class="panel-view">
+            <h2>Render Profiler (Surgical Updates)</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div>Last Render Time</div>
+                    <div class="metric-value">0.12 ms</div>
+                </div>
+                <div class="metric-card">
+                    <div>DOM Nodes Patched</div>
+                    <div class="metric-value">1 (Surgical)</div>
+                </div>
+                <div class="metric-card">
+                    <div>Avg Frame Rate</div>
+                    <div class="metric-value">60 FPS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reactive Dependency Map -->
+        <div id="reactivity" class="panel-view">
+            <h2>Reactive Dependency Map</h2>
+            <p>Tracing <code>Proxy</code> signal bindings directly to their consuming DOM nodes.</p>
+            <div class="graph-box">
+                <div style="color: #ce9178;">Signal: count (ref)</div>
+                <div class="tree-line" style="color: #dcdcaa;">[Bound to] &lt;Counter /&gt; : button.innerText</div>
+                <div class="tree-line" style="color: #dcdcaa;">[Bound to] &lt;App /&gt; : span#total-count</div>
+            </div>
+        </div>
+
+        <!-- State Inspector -->
+        <div id="state" class="panel-view">
+            <h2>Global & Local State Inspector</h2>
+            <div class="graph-box">
+                <div style="color: #4fc1ff;">Store: useAuthStore</div>
+                <div class="tree-line">user: { id: 1045, role: "admin" }</div>
+                <div class="tree-line">token: "eyJhb..."</div>
+                <div style="color: #4fc1ff; margin-top:15px;">Local State: &lt;Dashboard /&gt;</div>
+                <div class="tree-line">isSidebarOpen: true</div>
+            </div>
+        </div>
+
+        <!-- Performance Heatmap -->
+        <div id="heatmap" class="panel-view">
+            <h2>Render Performance Heatmap</h2>
+            <p>Visualizing UI components by rendering cost (Red = High CPU, Green = Idle).</p>
+            <div class="metric-grid">
+                <div class="metric-card" style="border-color: #ef4444;">&lt;DataTable /&gt; (4.2ms)</div>
+                <div class="metric-card" style="border-color: #10b981;">&lt;Header /&gt; (0.1ms)</div>
+                <div class="metric-card" style="border-color: #10b981;">&lt;Sidebar /&gt; (0.2ms)</div>
+                <div class="metric-card" style="border-color: #f59e0b;">&lt;GraphWidget /&gt; (1.8ms)</div>
+            </div>
+        </div>
+
+        <!-- Event Debugger -->
+        <div id="events" class="panel-view">
+            <h2>Event Debugger</h2>
+            <div class="graph-box" style="color: #c586c0;">
+                [16:55:01] Event: <b>onClick</b> fired on <i>&lt;SubmitButton /&gt;</i><br>
+                [16:55:01] Mutation: authStore.$patch() called<br>
+                [16:55:02] Event: <b>onScroll</b> fired on <i>window</i> (debounced)
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div id="timeline" class="panel-view">
+            <h2>Render Timeline</h2>
+            <div class="graph-box">
+                <div style="color: #ce9178;">T+0.0ms: Router push to /dashboard</div>
+                <div style="color: #dcdcaa;">T+0.1ms: Suspense trigger &lt;DashboardSkeleton /&gt;</div>
+                <div style="color: #9cdcfe;">T+4.5ms: Server Actions resolved</div>
+                <div style="color: #4fc1ff;">T+4.6ms: Zero VDOM DOM patch (3 nodes updated)</div>
+            </div>
+        </div>
+
+        <!-- Memory Inspector -->
+        <div id="memory" class="panel-view">
+            <h2>Memory Inspector</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div>JS Heap Size</div>
+                    <div class="metric-value">12.4 MB</div>
+                </div>
+                <div class="metric-card">
+                    <div>Detached DOM Nodes</div>
+                    <div class="metric-value" style="color: #10b981;">0 (Clean)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HMR Analyzer -->
+        <div id="hmr" class="panel-view">
+            <h2>Hot Reload Analyzer</h2>
+            <div class="graph-box" style="color: #c586c0;">
+                [16:42:01] WSS Connection Established.<br>
+                [16:44:22] Received AST patch for &lt;Header.Zenvu&gt;<br>
+                [16:44:22] State Preserved. Reactivity graph re-linked in 0.4ms.
+            </div>
+        </div>
+    </div>
+
+    <script src="panel.js"></script>
+</body>
+</html>

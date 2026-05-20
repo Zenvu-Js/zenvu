@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/docs-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "Zenvu dev",
+    "build": "Zenvu build --ssg"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@zenvu/hooks",
+  "version": "0.1.0",
+  "description": "Lifecycle and custom hooks for Zenvu.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" } },
+  "scripts": { "build": "tsup src/index.ts --format esm --dts --minify" },
+  "devDependencies": { "tsup": "^8.0.0", "typescript": "^5.7.0" },
+  "license": "MIT"
+}

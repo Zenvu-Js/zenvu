@@ -1,0 +1,9 @@
+{
+  "name": "@zenvu/starter-templates",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Official community starter kits for `Zenvu create`",
+  "workspaces": [
+    "templates/*"
+  ]
+}
