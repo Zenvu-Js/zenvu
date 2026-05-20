@@ -26,6 +26,9 @@ jobs:
     - name: Run Zenvu Test Suite
       run: cargo test --workspace
 
+    - name: Install Zenvu CLI
+      run: cargo install --path crates/zenvu-cli
+
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
